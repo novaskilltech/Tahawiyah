@@ -9,12 +9,20 @@
   const commentaryCitation = french => french
     ? 'Commentaire consulté : Ibn Abî al-ʿIzz, Sharḥ al-ʿAqîda al-Ṭaḥâwiyya, passage correspondant. La présente explication est une rédaction pédagogique indépendante.'
     : 'مرجع الشرح: ابن أبي العز، شرح العقيدة الطحاوية، الموضع الموافق لعبارة المتن. والشرح هنا تحرير تعليمي مستقل.';
+  const vocalizedCardTitles = {
+    opening:'بَيَانُ الْمَنْهَجِ وَالتَّوْحِيدِ', tanzih:'التَّنْزِيهُ عَنِ الْمِثْلِ وَالْعَجْزِ', eternity:'الْأَزَلُ وَالْبَقَاءُ وَكَمَالُ الرُّبُوبِيَّةِ', attributes:'الْأَوْهَامُ وَالصِّفَاتُ وَالْخَلْقُ',
+    qadar:'الْعِلْمُ وَالْقَدَرُ وَالْأَجَلُ', prophethood:'الرِّسَالَةُ وَخَتْمُ النُّبُوَّةِ', quran:'الْقُرْآنُ كَلَامُ اللهِ', unseen:'الإِيمَانُ بِالْغَيْبِ وَأَخْبَارُ الْآخِرَةِ',
+    faith:'الإِيمَانُ وَأَهْلُ الْقِبْلَةِ', afterlife:'الْبَعْثُ وَالْحِسَابُ وَالْجَنَّةُ وَالنَّارُ', companions:'الصَّحَابَةُ وَالْعُلَمَاءُ وَالْجَمَاعَةُ', balance:'دِينُ الإِسْلَامِ بَيْنَ طَرَفَيْنِ',
+    'names-before-creation':'الْأَسْمَاءُ قَبْلَ الْمَخْلُوقَاتِ', 'knowledge-limits':'الْعِلْمُ الْمَوْجُودُ وَالْعِلْمُ الْمَحْجُوبُ', 'tablet-pen':'اللَّوْحُ وَالْقَلَمُ وَسَبْقُ الْعِلْمِ', 'throne-angels':'الْعَرْشُ وَالْكُرْسِيُّ وَالْمَلَائِكَةُ',
+    'prayer-community':'الصَّلَاةُ وَالْجَمَاعَةُ وَوُلَاةُ الْأَمْرِ', grave:'الْقَبْرُ وَالسُّؤَالُ', 'ability-actions':'الِاسْتِطَاعَةُ وَالْكَسْبُ', 'dead-signs':'الدُّعَاءُ لِلْأَمْوَاتِ وَأَشْرَاطُ السَّاعَةِ'
+  };
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   }
   function paragraph(value) { return `<p>${escapeHtml(value)}</p>`; }
   function terms(values) { return values.map(item => `<span class="term">${escapeHtml(item)}</span>`).join(''); }
+  function cardTitle(item, french) { return french ? item.title : (vocalizedCardTitles[item.id] || item.title); }
   function render(items) {
     const french = document.documentElement.lang === 'fr';
     list.innerHTML = items.map((item, i) => `
@@ -37,6 +45,7 @@
   }
   function downloadCard(item, format) {
     const french = document.documentElement.lang === 'fr';
+    const title = cardTitle(item, french);
     const direction = french ? 'ltr' : 'rtl';
     const label = french ? 'CARTE DE RÉVISION' : 'بطاقة مراجعة';
     const safe = value => String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -47,7 +56,7 @@
     }, ['']);
     const lines = wrap(item.summary).slice(0, 4).map((line, index) => `<text x="450" y="${380 + index * 54}" text-anchor="middle" class="copy" direction="${direction}">${line}</text>`).join('');
     const terms = item.vocab.slice(0, 3).map((term, index) => `<text x="450" y="${660 + index * 45}" text-anchor="middle" class="term" direction="${direction}">• ${safe(term)}</text>`).join('');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101013"/><stop offset="1" stop-color="#2e1710"/></linearGradient></defs><style>.title{font:700 48px serif;fill:#fff}.meta{font:600 22px sans-serif;fill:#ff8a00;letter-spacing:1px}.copy{font:400 32px sans-serif;fill:#111}.term{font:400 24px sans-serif;fill:#fff}</style><rect width="900" height="900" fill="url(#g)"/><rect width="900" height="18" fill="#f25c05"/><circle cx="815" cy="95" r="155" fill="#f25c05" opacity=".26"/><rect x="60" y="245" width="780" height="285" rx="24" fill="#fff"/><rect x="60" y="590" width="780" height="195" rx="24" fill="#17171a" stroke="#ff8a00" stroke-width="2"/><text x="450" y="70" text-anchor="middle" class="meta" direction="${direction}">${label}</text><text x="450" y="185" text-anchor="middle" class="title" direction="${direction}">${safe(item.title)}</text>${lines}${terms}<text x="450" y="850" text-anchor="middle" class="meta">NovaSkill Tech · 2026</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101013"/><stop offset="1" stop-color="#2e1710"/></linearGradient></defs><style>.title{font:700 48px serif;fill:#fff}.meta{font:600 22px sans-serif;fill:#ff8a00;letter-spacing:1px}.copy{font:400 32px sans-serif;fill:#111}.term{font:400 24px sans-serif;fill:#fff}</style><rect width="900" height="900" fill="url(#g)"/><rect width="900" height="18" fill="#f25c05"/><circle cx="815" cy="95" r="155" fill="#f25c05" opacity=".26"/><rect x="60" y="245" width="780" height="285" rx="24" fill="#fff"/><rect x="60" y="590" width="780" height="195" rx="24" fill="#17171a" stroke="#ff8a00" stroke-width="2"/><text x="450" y="70" text-anchor="middle" class="meta" direction="${direction}">${label}</text><text x="450" y="185" text-anchor="middle" class="title" direction="${direction}">${safe(title)}</text>${lines}${terms}<text x="450" y="850" text-anchor="middle" class="meta">NovaSkill Tech · 2026</text></svg>`;
     const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
     const image = new Image();
     const url = URL.createObjectURL(blob);
@@ -64,7 +73,7 @@
     const cardContainer = document.querySelector('[data-cards]');
     const glossaryContainer = document.querySelector('[data-glossary]');
     const french = document.documentElement.lang === 'fr';
-    if (cardContainer) cardContainer.innerHTML = items.map((item, index) => `<article class="recall-card" data-tilt><div class="card-head"><span>${String(index + 1).padStart(2, '0')}</span><p>${escapeHtml(item.track)}</p></div><h3>${escapeHtml(item.title)}</h3><div class="card-rule">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
+    if (cardContainer) cardContainer.innerHTML = items.map((item, index) => `<article class="recall-card" data-tilt><div class="card-head"><span>${String(index + 1).padStart(2, '0')}</span><p>${escapeHtml(item.track)}</p></div><h3>${escapeHtml(cardTitle(item, french))}</h3><div class="card-rule">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
     if (glossaryContainer) {
       const entries = [...new Set(items.flatMap(item => item.vocab))].sort((a,b) => a.localeCompare(b, french ? 'fr' : 'ar'));
       glossaryContainer.innerHTML = entries.map(entry => { const [term, ...definition] = entry.split(':'); return `<article data-tilt><h3>${escapeHtml(term)}</h3><p>${escapeHtml(definition.join(':').trim())}</p></article>`; }).join('');
