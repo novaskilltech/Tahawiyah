@@ -3,6 +3,9 @@
   const list = document.querySelector('[data-lessons]');
   const toc = document.querySelector('[data-toc]');
   const progress = document.querySelector('[data-progress]');
+  const menuToggle = document.querySelector('[data-menu-toggle]');
+  const menu = document.querySelector('.study-drawer');
+  const menuBackdrop = document.querySelector('[data-menu-backdrop]');
   const copyLabel = document.documentElement.lang === 'fr' ? 'Copier' : 'نسخ النص';
   const copiedLabel = document.documentElement.lang === 'fr' ? 'Copié' : 'تم النسخ';
   const commentaryUrl = 'https://www.islamweb.net/ar/library/index.php?ID=1&bk_no=106&idfrom=1&idto=338&page=bookcontents';
@@ -63,7 +66,7 @@
         <div class="source-block"><p class="references"><strong>${french ? 'Texte et preuves :' : 'نص المتن والأدلة:'}</strong> ${escapeHtml(item.references)}</p><p class="commentary-reference"><strong>${french ? 'Source de l’explication :' : 'مصدر الشرح:'}</strong> <a href="${commentaryUrl}" target="_blank" rel="noreferrer">${escapeHtml(item.commentaryRef || commentaryCitation(french))}</a></p></div>
         <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Question de révision' : 'سُؤَالٌ لِلْمُرَاجَعَةِ'}</h3>${paragraph(item.exercise)}</section>
       </article>`).join('');
-    toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}">${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
+    toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}" data-drawer-link>${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
     progress.textContent = document.documentElement.lang === 'fr' ? `${items.length} unités de lecture` : `${items.length} وحدات للقراءة`;
   }
   async function downloadCard(item, format) {
@@ -191,6 +194,23 @@
   }
   render(data);
   renderStudyTools(data);
+  if (menuToggle && menu) {
+    const setMenu = (open, restoreFocus = false) => {
+      document.body.classList.toggle('menu-open', open);
+      menuToggle.setAttribute('aria-expanded', String(open));
+      menu.setAttribute('aria-hidden', String(!open));
+      menuBackdrop?.setAttribute('aria-hidden', String(!open));
+      if (open) {
+        menu.querySelector('[data-menu-close]')?.focus();
+      } else if (restoreFocus) {
+        menuToggle.focus();
+      }
+    };
+    menuToggle.addEventListener('click', () => setMenu(menuToggle.getAttribute('aria-expanded') !== 'true'));
+    document.querySelectorAll('[data-menu-close], [data-menu-backdrop]').forEach(element => element.addEventListener('click', () => setMenu(false, true)));
+    menu.querySelectorAll('[data-drawer-link]').forEach(link => link.addEventListener('click', () => setMenu(false)));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && menuToggle.getAttribute('aria-expanded') === 'true') setMenu(false, true); });
+  }
   document.addEventListener('click', async event => {
     const button = event.target.closest('[data-copy]');
     if (!button) return;
