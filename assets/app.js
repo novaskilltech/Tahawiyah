@@ -51,7 +51,7 @@
   function displayedMatn(item, french) { return french ? item.matn : (vocalizedMatn[item.id] || item.matn); }
   function render(items) {
     const french = document.documentElement.lang === 'fr';
-    list.innerHTML = items.map((item, i) => `
+    if (list) list.innerHTML = items.map((item, i) => `
       <article class="lesson" data-tilt id="${escapeHtml(item.id)}" data-search="${escapeHtml([item.title,item.matn,item.summary,item.simple,item.detailed,item.vocab.join(' ')].join(' '))}">
         <p class="lesson-number">${String(i + 1).padStart(2, '0')} · ${escapeHtml(item.track)}</p>
         <h2>${escapeHtml(item.title)}</h2>
@@ -66,8 +66,9 @@
         <div class="source-block"><p class="references"><strong>${french ? 'Texte et preuves :' : 'نص المتن والأدلة:'}</strong> ${escapeHtml(item.references)}</p><p class="commentary-reference"><strong>${french ? 'Source de l’explication :' : 'مصدر الشرح:'}</strong> <a href="${commentaryUrl}" target="_blank" rel="noreferrer">${escapeHtml(item.commentaryRef || commentaryCitation(french))}</a></p></div>
         <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Question de révision' : 'سُؤَالٌ لِلْمُرَاجَعَةِ'}</h3>${paragraph(item.exercise)}</section>
       </article>`).join('');
-    toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}" data-drawer-link>${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
-    progress.textContent = document.documentElement.lang === 'fr' ? `${items.length} unités de lecture` : `${items.length} وحدات للقراءة`;
+    const lessonPath = document.body.dataset.page === 'course' ? '' : 'index.html';
+    if (toc) toc.innerHTML = items.map((item, i) => `<a href="${lessonPath}#${escapeHtml(item.id)}" data-drawer-link>${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
+    if (progress) progress.textContent = document.documentElement.lang === 'fr' ? `${items.length} unités de lecture` : `${items.length} وحدات للقراءة`;
   }
   async function downloadCard(item, format) {
     const french = document.documentElement.lang === 'fr';
@@ -217,6 +218,7 @@
     try { await navigator.clipboard.writeText(button.dataset.copy); button.textContent = copiedLabel; setTimeout(() => { button.textContent = copyLabel; }, 1300); } catch (_) { button.textContent = button.dataset.copy; }
   });
   document.querySelector('[data-search]')?.addEventListener('input', event => {
+    if (!list) return;
     const query = event.target.value.trim().toLocaleLowerCase();
     let visible = 0;
     list.querySelectorAll('.lesson').forEach(lesson => { const matched = !query || lesson.dataset.search.toLocaleLowerCase().includes(query); lesson.hidden = !matched; if (matched) visible += 1; });
