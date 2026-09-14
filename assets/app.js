@@ -18,7 +18,7 @@
   function render(items) {
     const french = document.documentElement.lang === 'fr';
     list.innerHTML = items.map((item, i) => `
-      <article class="lesson" id="${escapeHtml(item.id)}" data-search="${escapeHtml([item.title,item.matn,item.summary,item.simple,item.detailed,item.vocab.join(' ')].join(' '))}">
+      <article class="lesson" data-tilt id="${escapeHtml(item.id)}" data-search="${escapeHtml([item.title,item.matn,item.summary,item.simple,item.detailed,item.vocab.join(' ')].join(' '))}">
         <p class="lesson-number">${String(i + 1).padStart(2, '0')} · ${escapeHtml(item.track)}</p>
         <h2>${escapeHtml(item.title)}</h2>
         <div class="matn">${escapeHtml(item.matn)}</div>
@@ -64,10 +64,10 @@
     const cardContainer = document.querySelector('[data-cards]');
     const glossaryContainer = document.querySelector('[data-glossary]');
     const french = document.documentElement.lang === 'fr';
-    if (cardContainer) cardContainer.innerHTML = items.map((item, index) => `<article class="recall-card"><div class="card-head"><span>${String(index + 1).padStart(2, '0')}</span><p>${escapeHtml(item.track)}</p></div><h3>${escapeHtml(item.title)}</h3><div class="card-rule">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
+    if (cardContainer) cardContainer.innerHTML = items.map((item, index) => `<article class="recall-card" data-tilt><div class="card-head"><span>${String(index + 1).padStart(2, '0')}</span><p>${escapeHtml(item.track)}</p></div><h3>${escapeHtml(item.title)}</h3><div class="card-rule">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
     if (glossaryContainer) {
       const entries = [...new Set(items.flatMap(item => item.vocab))].sort((a,b) => a.localeCompare(b, french ? 'fr' : 'ar'));
-      glossaryContainer.innerHTML = entries.map(entry => { const [term, ...definition] = entry.split(':'); return `<article><h3>${escapeHtml(term)}</h3><p>${escapeHtml(definition.join(':').trim())}</p></article>`; }).join('');
+      glossaryContainer.innerHTML = entries.map(entry => { const [term, ...definition] = entry.split(':'); return `<article data-tilt><h3>${escapeHtml(term)}</h3><p>${escapeHtml(definition.join(':').trim())}</p></article>`; }).join('');
     }
   }
   render(data);
