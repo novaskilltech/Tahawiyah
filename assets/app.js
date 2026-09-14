@@ -66,32 +66,118 @@
     toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}">${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
     progress.textContent = document.documentElement.lang === 'fr' ? `${items.length} unités de lecture` : `${items.length} وحدات للقراءة`;
   }
-  function downloadCard(item, format) {
+  async function downloadCard(item, format) {
     const french = document.documentElement.lang === 'fr';
     const title = cardTitle(item, french);
     const cardText = displayedMatn(item, french);
+    const vocabulary = item.vocab.slice(0, 3);
+    const textFont = french ? '"Source Serif 4", Georgia, serif' : '"Noto Naskh Arabic", serif';
+    const titleFont = french ? '"Playfair Display", Georgia, serif' : '"Noto Naskh Arabic", serif';
     const direction = french ? 'ltr' : 'rtl';
-    const label = french ? 'CARTE DE RÉVISION' : 'بطاقة مراجعة';
-    const safe = value => String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
-    const wrap = (text, limit = 31) => safe(text).split(' ').reduce((lines, word) => {
-      const line = lines.at(-1);
-      if ((line + ' ' + word).trim().length > limit) lines.push(word); else lines[lines.length - 1] = `${line} ${word}`.trim();
-      return lines;
-    }, ['']);
-    const lines = wrap(cardText).slice(0, 4).map((line, index) => `<text x="450" y="${380 + index * 54}" text-anchor="middle" class="copy" direction="${direction}">${line}</text>`).join('');
-    const terms = item.vocab.slice(0, 3).map((term, index) => `<text x="450" y="${660 + index * 45}" text-anchor="middle" class="term" direction="${direction}">• ${safe(term)}</text>`).join('');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101013"/><stop offset="1" stop-color="#2e1710"/></linearGradient></defs><style>.title{font:700 48px serif;fill:#fff}.meta{font:600 22px sans-serif;fill:#ff8a00;letter-spacing:1px}.copy{font:400 32px sans-serif;fill:#111}.term{font:400 24px sans-serif;fill:#fff}</style><rect width="900" height="900" fill="url(#g)"/><rect width="900" height="18" fill="#f25c05"/><circle cx="815" cy="95" r="155" fill="#f25c05" opacity=".26"/><rect x="60" y="245" width="780" height="285" rx="24" fill="#fff"/><rect x="60" y="590" width="780" height="195" rx="24" fill="#17171a" stroke="#ff8a00" stroke-width="2"/><text x="450" y="70" text-anchor="middle" class="meta" direction="${direction}">${label}</text><text x="450" y="185" text-anchor="middle" class="title" direction="${direction}">${safe(title)}</text>${lines}${terms}<text x="450" y="850" text-anchor="middle" class="meta">NovaSkill Tech · 2026</text></svg>`;
-    const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
-    const image = new Image();
-    const url = URL.createObjectURL(blob);
-    image.onload = () => {
-      const canvas = document.createElement('canvas'); canvas.width = 900; canvas.height = 900;
-      const context = canvas.getContext('2d'); context.drawImage(image, 0, 0); URL.revokeObjectURL(url);
-      const type = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-      const extension = format === 'jpeg' ? 'jpg' : 'png';
-      canvas.toBlob(result => { const download = document.createElement('a'); download.href = URL.createObjectURL(result); download.download = `aqidah-${item.id}.${extension}`; download.click(); setTimeout(() => URL.revokeObjectURL(download.href), 500); }, type, .94);
+    const align = french ? 'left' : 'right';
+    const edge = french ? 132 : 1068;
+    await Promise.all([
+      document.fonts.load(`400 42px ${textFont}`),
+      document.fonts.load(`700 64px ${titleFont}`)
+    ]);
+    const canvas = document.createElement('canvas');
+    canvas.width = 1200; canvas.height = 1500;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Canvas unavailable');
+    context.direction = direction;
+    context.textAlign = align;
+    context.textBaseline = 'alphabetic';
+    const font = (weight, size, family) => `${weight} ${size}px ${family}`;
+    const roundedRect = (x, y, width, height, radius, fill, stroke) => {
+      context.beginPath(); context.roundRect(x, y, width, height, radius);
+      context.fillStyle = fill; context.fill();
+      if (stroke) { context.strokeStyle = stroke; context.lineWidth = 2; context.stroke(); }
     };
-    image.src = url;
+    const wrap = (value, width) => {
+      const words = String(value).trim().split(/\s+/);
+      const lines = [];
+      let line = '';
+      for (const word of words) {
+        const candidate = line ? `${line} ${word}` : word;
+        if (line && context.measureText(candidate).width > width) { lines.push(line); line = word; }
+        else line = candidate;
+      }
+      if (line) lines.push(line);
+      return lines;
+    };
+    const fit = (value, width, height, family, weight, maximum, minimum, leading) => {
+      for (let size = maximum; size >= minimum; size -= 1) {
+        context.font = font(weight, size, family);
+        const lines = wrap(value, width);
+        const lineHeight = size * leading;
+        if (lines.length * lineHeight <= height && lines.every(line => context.measureText(line).width <= width)) {
+          return { lines, size, lineHeight, family, weight };
+        }
+      }
+      throw new Error(`Card text does not fit: ${item.id}`);
+    };
+    const drawLines = (layout, x, firstBaseline, color) => {
+      context.font = font(layout.weight, layout.size, layout.family);
+      context.fillStyle = color;
+      layout.lines.forEach((line, index) => context.fillText(line, x, firstBaseline + index * layout.lineHeight));
+    };
+
+    // All heights are reserved before painting; every passage and term remains complete.
+    const titleLayout = fit(title, 930, 156, titleFont, 700, french ? 68 : 72, 39, french ? 1.25 : 1.5);
+    const passageLayout = fit(cardText, 922, 450, textFont, french ? 400 : 600, french ? 46 : 52, 27, french ? 1.42 : 1.67);
+    const termsLayout = vocabulary.map(term => fit(term, 865, 79, textFont, french ? 500 : 600, french ? 30 : 34, 23, french ? 1.28 : 1.55));
+    const termTotal = termsLayout.reduce((total, layout) => total + layout.lines.length * layout.lineHeight + 18, 0);
+    if (termTotal > 270) throw new Error(`Card vocabulary does not fit: ${item.id}`);
+
+    context.fillStyle = '#f6f3ee'; context.fillRect(0, 0, 1200, 1500);
+    context.fillStyle = '#141417'; context.fillRect(0, 0, 1200, 390);
+    context.fillStyle = '#f26b17'; context.fillRect(0, 0, 1200, 12);
+    context.fillStyle = 'rgba(242,107,23,.11)';
+    context.beginPath(); context.arc(french ? 1080 : 120, 0, 255, 0, Math.PI * 2); context.fill();
+    context.strokeStyle = 'rgba(255,255,255,.14)'; context.lineWidth = 2;
+    context.beginPath(); context.moveTo(72, 108); context.lineTo(1128, 108); context.stroke();
+    context.font = font(700, 30, textFont); context.fillStyle = '#ff9a49';
+    context.fillText(french ? 'AL-ʿAQÎDA AL-ṬAḤÂWIYYA' : 'الْعَقِيدَةُ الطَّحَاوِيَّةُ', edge, 80);
+    context.textAlign = french ? 'right' : 'left';
+    context.fillText(String(data.indexOf(item) + 1).padStart(2, '0'), french ? 1068 : 132, 80);
+    context.textAlign = align;
+    drawLines(titleLayout, edge, 190, '#fffaf5');
+
+    roundedRect(72, 352, 1056, 615, 30, '#fff', '#e5dfd8');
+    context.fillStyle = '#f26b17';
+    context.fillRect(french ? 72 : 1120, 390, 8, 62);
+    context.font = font(700, 26, textFont); context.fillStyle = '#ad4d0b';
+    context.fillText(french ? 'PASSAGE DU TEXTE' : 'مِنَ الْمَتْنِ', edge, 438);
+    const passageStart = french ? 517 : 531;
+    drawLines(passageLayout, edge, passageStart, '#1d1b1b');
+
+    context.font = font(700, 30, titleFont); context.fillStyle = '#151517';
+    context.fillText(french ? 'REPÈRES DE LECTURE' : 'مَفَاتِيحُ الْفَهْمِ', edge, 1045);
+    context.fillStyle = '#f26b17'; context.fillRect(72, 1065, 1056, 3);
+    let termTop = 1122;
+    termsLayout.forEach((layout, index) => {
+      const textEdge = french ? 165 : 1035;
+      context.fillStyle = '#f26b17';
+      context.beginPath(); context.arc(french ? 130 : 1070, termTop - 10, 6, 0, Math.PI * 2); context.fill();
+      drawLines(layout, textEdge, termTop, '#302c29');
+      termTop += layout.lines.length * layout.lineHeight + 18;
+    });
+    context.strokeStyle = '#dbd4cc'; context.lineWidth = 2;
+    context.beginPath(); context.moveTo(72, 1390); context.lineTo(1128, 1390); context.stroke();
+    context.font = font(600, 24, textFont); context.fillStyle = '#5f5751';
+    context.fillText('NovaSkill Tech · 2026', edge, 1442);
+    context.textAlign = french ? 'right' : 'left';
+    context.fillText(french ? 'CARTE DE RÉVISION' : 'بِطَاقَةُ مُرَاجَعَةٍ', french ? 1068 : 132, 1442);
+
+    const type = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+    const extension = format === 'jpeg' ? 'jpg' : 'png';
+    const result = await new Promise(resolve => canvas.toBlob(resolve, type, .94));
+    if (!result) throw new Error('Card export failed');
+    const download = document.createElement('a');
+    download.href = URL.createObjectURL(result);
+    download.download = `aqidah-${item.id}.${extension}`;
+    download.click();
+    setTimeout(() => URL.revokeObjectURL(download.href), 2000);
   }
   function renderStudyTools(items) {
     const cardContainer = document.querySelector('[data-cards]');
@@ -125,6 +211,9 @@
     const button = event.target.closest('[data-download]');
     if (!button) return;
     const item = data.find(entry => entry.id === button.dataset.id);
-    if (item) downloadCard(item, button.dataset.download);
+    if (item) downloadCard(item, button.dataset.download).catch(error => {
+      console.error('Card export failed', error);
+      button.textContent = document.documentElement.lang === 'fr' ? 'Export indisponible' : 'تَعَذَّرَ التَّنْزِيلُ';
+    });
   });
 }());

@@ -26,3 +26,29 @@ html[dir="ltr"] .card-rule { border-right:0; border-left:4px solid var(--orange)
 .landing-stats { grid-template-columns:repeat(4,1fr); }.landing-credit { margin:1rem 0 0; color:var(--ink-muted); font-size:.85rem; font-weight:600; }.free-stat strong { font-size:1.4rem; }.visitor-stat { color:var(--white); background:linear-gradient(135deg,#151519,#302119)!important; border-color:var(--ink); }.visitor-stat strong { color:var(--orange-bright); }.visitor-stat span { color:#f3e4db; }
 @media (max-width:1050px) and (min-width:851px) { .landing-stats { grid-template-columns:repeat(2,1fr); } }
 @media (prefers-reduced-motion:reduce) { [data-tilt],[data-tilt][data-tilt-active="true"] { transform:none!important; transition:none!important; } }
+
+/* Cartes de révision : mêmes proportions et typographies que l'export image. */
+.cards-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:1.35rem; align-items:stretch; }
+.recall-card,.recall-card:nth-child(3n+2),.recall-card:nth-child(3n) {
+  min-width:0; min-height:510px; padding:1.55rem;
+  color:var(--ink); background:#fdfbf8; border:1px solid #dcd5cd;
+  border-top:7px solid var(--orange); border-radius:1.1rem;
+  box-shadow:0 15px 38px rgba(28,20,15,.1),5px 5px 0 rgba(242,92,5,.8);
+}
+.recall-card::before { z-index:0; inset:auto -3rem -6rem auto; width:13rem; height:13rem; border:1px solid rgba(242,92,5,.09); border-radius:50%; background:none; }
+.recall-card > * { position:relative; z-index:1; }
+.card-head { border-bottom:1px solid #ded8d1; padding-bottom:.9rem; }
+.card-head span { width:2.7rem; height:2.7rem; color:#fff; background:#171719; border-radius:50%; font:700 .85rem/1 var(--latin); }
+.card-head p { color:#a7440a; font-size:.96rem; line-height:1.5; }
+.recall-card h3 { margin:1.1rem 0 1rem; color:#1d1b1b; font:700 clamp(1.6rem,2.5vw,2rem)/1.65 var(--arabic); }
+.card-rule { flex:1; padding:1.2rem 1.3rem; color:#282423; background:#fff; border:1px solid #e8e0d8; border-right:5px solid var(--orange); border-radius:.65rem; font:600 1.22rem/2 var(--arabic); }
+.card-terms { margin-top:1rem; gap:.45rem; }
+.recall-card .term { max-width:100%; padding:.3rem .65rem; color:#4b3325; background:#fff0e5; border:1px solid #f5ceae; border-radius:999px; font-size:.9rem; overflow-wrap:anywhere; }
+.card-actions { gap:.7rem; padding-top:.3rem; }
+.card-actions button { flex:1; min-width:0; min-height:2.7rem; color:#fff; background:#171719; border-color:#171719; border-radius:.5rem; font-size:.9rem; }
+.card-actions button:hover { color:#171719; background:var(--orange-bright); border-color:var(--orange-bright); }
+html[lang="fr"] .recall-card h3 { font:700 clamp(1.5rem,2.5vw,1.95rem)/1.3 'Playfair Display',var(--latin); }
+html[lang="fr"] .card-rule { border-right:1px solid #e8e0d8; border-left:5px solid var(--orange); font:400 1.13rem/1.65 var(--latin); }
+html[lang="fr"] .card-head p,html[lang="fr"] .recall-card .term,html[lang="fr"] .card-actions button { font-family:var(--latin); }
+@media(max-width:850px) { .cards-grid { grid-template-columns:1fr; } }
+@media(max-width:520px) { .recall-card { min-height:0; padding:1.1rem; }.card-actions { flex-wrap:wrap; }.card-actions button { flex-basis:100%; } }
