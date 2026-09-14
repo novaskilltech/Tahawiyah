@@ -5,6 +5,10 @@
   const progress = document.querySelector('[data-progress]');
   const copyLabel = document.documentElement.lang === 'fr' ? 'Copier' : 'نسخ النص';
   const copiedLabel = document.documentElement.lang === 'fr' ? 'Copié' : 'تم النسخ';
+  const commentaryUrl = 'https://www.islamweb.net/ar/library/index.php?ID=1&bk_no=106&idfrom=1&idto=338&page=bookcontents';
+  const commentaryCitation = french => french
+    ? 'Commentaire consulté : Ibn Abî al-ʿIzz, Sharḥ al-ʿAqîda al-Ṭaḥâwiyya, passage correspondant. La présente explication est une rédaction pédagogique indépendante.'
+    : 'مرجع الشرح: ابن أبي العز، شرح العقيدة الطحاوية، الموضع الموافق لعبارة المتن. والشرح هنا تحرير تعليمي مستقل.';
 
   function escapeHtml(value) {
     return String(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
@@ -12,6 +16,7 @@
   function paragraph(value) { return `<p>${escapeHtml(value)}</p>`; }
   function terms(values) { return values.map(item => `<span class="term">${escapeHtml(item)}</span>`).join(''); }
   function render(items) {
+    const french = document.documentElement.lang === 'fr';
     list.innerHTML = items.map((item, i) => `
       <article class="lesson" id="${escapeHtml(item.id)}" data-search="${escapeHtml([item.title,item.matn,item.summary,item.simple,item.detailed,item.vocab.join(' ')].join(' '))}">
         <p class="lesson-number">${String(i + 1).padStart(2, '0')} · ${escapeHtml(item.track)}</p>
@@ -24,7 +29,7 @@
           <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Explication développée' : 'شرح مفصّل'}</h3>${paragraph(item.detailed)}</section>
           <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Repères et vocabulaire' : 'مصطلحات وتنبيهات'}</h3><div class="vocabulary">${terms(item.vocab)}</div><p>${escapeHtml(item.caution)}</p></section>
         </div>
-        <p class="references"><strong>${document.documentElement.lang === 'fr' ? 'Références :' : 'المراجع:'}</strong> ${escapeHtml(item.references)}</p>
+        <div class="source-block"><p class="references"><strong>${french ? 'Texte et preuves :' : 'نص المتن والأدلة:'}</strong> ${escapeHtml(item.references)}</p><p class="commentary-reference"><strong>${french ? 'Source de l’explication :' : 'مصدر الشرح:'}</strong> <a href="${commentaryUrl}" target="_blank" rel="noreferrer">${escapeHtml(item.commentaryRef || commentaryCitation(french))}</a></p></div>
         <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Question de révision' : 'سؤال للمراجعة'}</h3>${paragraph(item.exercise)}</section>
       </article>`).join('');
     toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}">${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
@@ -42,7 +47,7 @@
     }, ['']);
     const lines = wrap(item.summary).slice(0, 4).map((line, index) => `<text x="760" y="${385 + index * 54}" text-anchor="end" class="copy">${line}</text>`).join('');
     const terms = item.vocab.slice(0, 3).map((term, index) => `<text x="760" y="${660 + index * 45}" text-anchor="end" class="term">• ${safe(term)}</text>`).join('');
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><style>.title{font:700 55px serif;fill:#fff7e8}.meta{font:600 24px sans-serif;fill:#e3bd75;letter-spacing:2px}.copy{font:400 34px sans-serif;fill:#15313b}.term{font:400 25px sans-serif;fill:#fff5e7}</style><rect width="900" height="900" fill="#153b45"/><path d="M0 0H900V142C714 90 186 90 0 142Z" fill="#b77b43"/><rect x="60" y="245" width="780" height="285" rx="28" fill="#fffaf0"/><rect x="60" y="590" width="780" height="195" rx="28" fill="#245b62"/><text x="760" y="70" text-anchor="end" class="meta" direction="${direction}">${label}</text><text x="760" y="185" text-anchor="end" class="title" direction="${direction}">${safe(item.title)}</text>${lines}${terms}<text x="760" y="850" text-anchor="end" class="meta" direction="${direction}">NovaSkill Tech · 2026</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101013"/><stop offset="1" stop-color="#2e1710"/></linearGradient></defs><style>.title{font:700 55px serif;fill:#fff}.meta{font:600 24px sans-serif;fill:#ff8a00;letter-spacing:2px}.copy{font:400 34px sans-serif;fill:#111}.term{font:400 25px sans-serif;fill:#fff}</style><rect width="900" height="900" fill="url(#g)"/><rect width="900" height="18" fill="#f25c05"/><circle cx="820" cy="90" r="160" fill="#f25c05" opacity=".26"/><rect x="60" y="245" width="780" height="285" rx="24" fill="#fff"/><rect x="60" y="590" width="780" height="195" rx="24" fill="#17171a" stroke="#ff8a00" stroke-width="2"/><text x="760" y="70" text-anchor="end" class="meta" direction="${direction}">${label}</text><text x="760" y="185" text-anchor="end" class="title" direction="${direction}">${safe(item.title)}</text>${lines}${terms}<text x="760" y="850" text-anchor="end" class="meta" direction="${direction}">NovaSkill Tech · 2026</text></svg>`;
     const blob = new Blob([svg], { type:'image/svg+xml;charset=utf-8' });
     const image = new Image();
     const url = URL.createObjectURL(blob);
@@ -59,7 +64,7 @@
     const cardContainer = document.querySelector('[data-cards]');
     const glossaryContainer = document.querySelector('[data-glossary]');
     const french = document.documentElement.lang === 'fr';
-    if (cardContainer) cardContainer.innerHTML = items.map(item => `<article class="recall-card"><p>${escapeHtml(item.track)}</p><h3>${escapeHtml(item.title)}</h3><div class="card-summary">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
+    if (cardContainer) cardContainer.innerHTML = items.map((item, index) => `<article class="recall-card"><div class="card-head"><span>${String(index + 1).padStart(2, '0')}</span><p>${escapeHtml(item.track)}</p></div><h3>${escapeHtml(item.title)}</h3><div class="card-rule">${escapeHtml(item.summary)}</div><div class="card-terms">${terms(item.vocab.slice(0,3))}</div><div class="card-actions"><button type="button" data-download="png" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger PNG' : 'تنزيل PNG'}</button><button type="button" data-download="jpeg" data-id="${escapeHtml(item.id)}">${french ? 'Télécharger JPEG' : 'تنزيل JPEG'}</button></div></article>`).join('');
     if (glossaryContainer) {
       const entries = [...new Set(items.flatMap(item => item.vocab))].sort((a,b) => a.localeCompare(b, french ? 'fr' : 'ar'));
       glossaryContainer.innerHTML = entries.map(entry => { const [term, ...definition] = entry.split(':'); return `<article><h3>${escapeHtml(term)}</h3><p>${escapeHtml(definition.join(':').trim())}</p></article>`; }).join('');

@@ -26,4 +26,6 @@ for (const path of ['index.html', 'ar/index.html', 'fr/index.html']) {
   const html = fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
   if (!html.includes('viewport') || !html.includes('site.css')) throw new Error(`${path}: missing responsive or stylesheet metadata`);
 }
+const app = fs.readFileSync(new URL('../assets/app.js', import.meta.url), 'utf8');
+if (!app.includes('commentary-reference') || !app.includes('commentaryCitation')) throw new Error('lesson commentary-source rendering is missing');
 console.log(`Validated ${ar.length} aligned Arabic/French units.`);
