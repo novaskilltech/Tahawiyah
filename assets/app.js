@@ -55,13 +55,13 @@
         <div class="matn">${escapeHtml(displayedMatn(item, french))}</div>
         <button class="copy" type="button" data-copy="${escapeHtml(displayedMatn(item, french))}">${copyLabel}</button>
         <div class="lesson-details">
-          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'En une phrase' : 'الخلاصة في سطر'}</h3>${paragraph(item.summary)}</section>
-          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Explication accessible' : 'شرح ميسّر'}</h3>${paragraph(item.simple)}</section>
-          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Explication développée' : 'شرح مفصّل'}</h3>${paragraph(item.detailed)}</section>
-          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Repères et vocabulaire' : 'مصطلحات وتنبيهات'}</h3><div class="vocabulary">${terms(item.vocab)}</div><p>${escapeHtml(item.caution)}</p></section>
+          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'En une phrase' : 'الْخُلَاصَةُ فِي سَطْرٍ'}</h3>${paragraph(item.summary)}</section>
+          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Explication accessible' : 'شَرْحٌ مُيَسَّرٌ'}</h3>${paragraph(item.simple)}</section>
+          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Explication développée' : 'شَرْحٌ مُفَصَّلٌ'}</h3>${paragraph(item.detailed)}</section>
+          <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Repères et vocabulaire' : 'مُصْطَلَحَاتٌ وَتَنْبِيهَاتٌ'}</h3><div class="vocabulary">${terms(item.vocab)}</div><p>${escapeHtml(item.caution)}</p></section>
         </div>
         <div class="source-block"><p class="references"><strong>${french ? 'Texte et preuves :' : 'نص المتن والأدلة:'}</strong> ${escapeHtml(item.references)}</p><p class="commentary-reference"><strong>${french ? 'Source de l’explication :' : 'مصدر الشرح:'}</strong> <a href="${commentaryUrl}" target="_blank" rel="noreferrer">${escapeHtml(item.commentaryRef || commentaryCitation(french))}</a></p></div>
-        <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Question de révision' : 'سؤال للمراجعة'}</h3>${paragraph(item.exercise)}</section>
+        <section class="panel"><h3>${document.documentElement.lang === 'fr' ? 'Question de révision' : 'سُؤَالٌ لِلْمُرَاجَعَةِ'}</h3>${paragraph(item.exercise)}</section>
       </article>`).join('');
     toc.innerHTML = items.map((item, i) => `<a href="#${escapeHtml(item.id)}">${String(i + 1).padStart(2, '0')}. ${escapeHtml(item.title)}</a>`).join('');
     progress.textContent = document.documentElement.lang === 'fr' ? `${items.length} unités de lecture` : `${items.length} وحدات للقراءة`;
