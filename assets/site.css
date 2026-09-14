@@ -60,3 +60,10 @@ html[lang="fr"] .card-head p,html[lang="fr"] .recall-card .term,html[lang="fr"] 
 @media (max-width:410px) { .menu-label { display:none; }.site-brand { max-width:58vw; }.site-nav a.locale-link { min-width:2.65rem; justify-content:center; padding-inline:.45rem; }.eyebrow { font-size:.78rem; }.study-hero h1 { font-size:2.15rem; }.drawer-rubrics a { min-height:2.9rem; } }
 @media (prefers-reduced-motion:reduce) { .study-drawer,.menu-backdrop { transition:none!important; } }
 html[lang="fr"] .menu-toggle { font-family:var(--latin); }
+
+/* Barre de défilement toujours repérable lorsque la liste de leçons dépasse l'écran. */
+.study-drawer { overflow-y:scroll; scrollbar-gutter:stable; scrollbar-width:thin; scrollbar-color:var(--orange) #25252a; }
+.study-drawer::-webkit-scrollbar { width:12px; }
+.study-drawer::-webkit-scrollbar-track { background:#25252a; }
+.study-drawer::-webkit-scrollbar-thumb { background:var(--orange); border:3px solid #25252a; border-radius:999px; }
+.study-drawer::-webkit-scrollbar-thumb:hover { background:var(--orange-bright); }
