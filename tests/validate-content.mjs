@@ -10,11 +10,14 @@ const load = path => {
 const ar = load(new URL('../assets/content-ar.js', import.meta.url));
 const fr = load(new URL('../assets/content-fr.js', import.meta.url));
 for (const [locale, items] of [['ar', ar], ['fr', fr]]) {
-  if (!Array.isArray(items) || items.length < 12) throw new Error(`${locale}: fewer than 12 learning units`);
+  if (!Array.isArray(items) || items.length < 20) throw new Error(`${locale}: fewer than 20 learning units`);
   const ids = new Set();
+  const passages = new Set();
   for (const item of items) {
     if (ids.has(item.id)) throw new Error(`${locale}: duplicate id ${item.id}`);
+    if (passages.has(item.matn)) throw new Error(`${locale}: duplicate matn passage for ${item.id}`);
     ids.add(item.id);
+    passages.add(item.matn);
     for (const field of required) if (!item[field] || (Array.isArray(item[field]) && item[field].length === 0)) throw new Error(`${locale}: ${item.id} lacks ${field}`);
   }
 }
