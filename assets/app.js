@@ -183,6 +183,34 @@
     download.click();
     setTimeout(() => URL.revokeObjectURL(download.href), 2000);
   }
+  function renderChapterQuiz(items) {
+    let quizList = document.querySelector('[data-quiz-list]');
+    if (!quizList) {
+      const quizHost = document.querySelector('.quiz');
+      if (!quizHost) return;
+      const heading = document.createElement('h2');
+      heading.textContent = document.documentElement.lang === 'fr' ? 'Questions par unité' : 'أَسْئِلَةٌ لِكُلِّ وَحْدَةٍ';
+      quizList = document.createElement('div');
+      quizList.className = 'quiz-list';
+      quizList.dataset.quizList = '';
+      quizHost.append(heading, quizList);
+    }
+    const french = document.documentElement.lang === 'fr';
+    quizList.innerHTML = items.map((item, index) => {
+      const options = [
+        { text: item.summary, correct: true },
+        { text: items[(index + 5) % items.length].summary, correct: false },
+        { text: items[(index + 11) % items.length].summary, correct: false }
+      ];
+      const ordered = options.map((_, optionIndex) => options[(optionIndex + index) % options.length]);
+      const question = french
+        ? `Quelle proposition résume le mieux l’unité « ${item.title} » ?`
+        : `أَيُّ عِبَارَةٍ تُلَخِّصُ وَحْدَةَ «${item.title}» أَدَقَّ تَلْخِيصٍ؟`;
+      const correct = french ? 'Bonne réponse : cette proposition correspond à l’idée centrale de l’unité.' : 'إِجَابَةٌ صَحِيحَةٌ: هٰذِهِ الْعِبَارَةُ تُوَافِقُ الْفِكْرَةَ الْمَرْكَزِيَّةَ لِلْوَحْدَةِ.';
+      const wrong = french ? 'À revoir : relisez le texte et l’explication de cette unité.' : 'لِلْمُرَاجَعَةِ: أَعِدْ قِرَاءَةَ النَّصِّ وَشَرْحِ هٰذِهِ الْوَحْدَةِ.';
+      return `<article class="quiz-question" data-tilt><p class="lesson-number">${String(index + 1).padStart(2, '0')} · ${escapeHtml(item.track)}</p><h3>${escapeHtml(question)}</h3><div class="quiz-options">${ordered.map(option => `<button class="quiz-option" data-answer="${option.correct}" data-correct="${escapeHtml(correct)}" data-wrong="${escapeHtml(wrong)}">${escapeHtml(option.text)}</button>`).join('')}</div><p class="quiz-feedback" aria-live="polite"></p></article>`;
+    }).join('');
+  }
   function renderStudyTools(items) {
     const cardContainer = document.querySelector('[data-cards]');
     const glossaryContainer = document.querySelector('[data-glossary]');
@@ -195,6 +223,7 @@
   }
   render(data);
   renderStudyTools(data);
+  renderChapterQuiz(data);
   if (menuToggle && menu) {
     const setMenu = (open, restoreFocus = false) => {
       document.body.classList.toggle('menu-open', open);
@@ -225,7 +254,7 @@
     progress.textContent = document.documentElement.lang === 'fr' ? `${visible} unité(s) affichée(s)` : `${visible} وحدة ظاهرة`;
   });
   document.querySelectorAll('[data-answer]').forEach(button => button.addEventListener('click', () => {
-    const container = button.closest('.quiz');
+    const container = button.closest('.quiz-question') || button.closest('.quiz');
     container.querySelectorAll('[data-answer]').forEach(option => { option.dataset.state = option === button ? (option.dataset.answer === 'true' ? 'correct' : 'wrong') : ''; });
     container.querySelector('.quiz-feedback').textContent = button.dataset.answer === 'true' ? button.dataset.correct : button.dataset.wrong;
   }));
